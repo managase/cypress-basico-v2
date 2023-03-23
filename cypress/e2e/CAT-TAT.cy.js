@@ -2,6 +2,8 @@
 
 describe('Central de Atendimento ao Cliente TAT', function() {
 
+  const THREE_SECONDS_IN_ML = 3000
+
   beforeEach(function() {
     cy.visit('src/index.html')
   })
@@ -171,4 +173,59 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     cy.contains('Talking About Testing').should('be.visible')
   })
 
+  it('21 - Exibir mensagem por 3 segundos - Section 12 - 45', function() {
+    cy.clock()
+    cy.fillMandatoryFieldsAndSubmit()
+    cy.get('.success').should('be.visible')
+    cy.tick(THREE_SECONDS_IN_ML)
+    cy.get('.success').should('not.be.visible')
+  })
+
+  it('22 - Exibir e esconder as mensagens pde sucesso e erro com o .invoke - Section 12 - 50', function() {
+    cy.get('.success')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Mensagem enviada com sucesso.')
+      .invoke('hide')
+      .should('not.be.visible')
+    cy.get('.error')
+    .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Valide os campos obrigatórios!')
+      .invoke('hide')
+      .should('not.be.visible')
+  })
+
+  it('23 - Preencher área de texto com o .invoke - Section 12 - 52', function() {
+    const longText = Cypress._.repeat('01234567890',20)
+    cy.get('#open-text-area')
+      .invoke('val', longText)
+      .should('value.value', longText)
+  })
+
+  it('24 - Enviar uma requisição HTTP - Section 12 - 54', function() {
+    cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html')
+      .should(function (response) {
+        const { status, statusText, body } = response
+        console.log(response)
+        expect(status).to.equal(200)
+        expect(statusText).to.equal('OK')
+        expect(body).to.include('CAC TAT')
+      })
+  })
+
+  it.only('25 - Exibir e esconder as mensagens pde sucesso e erro com o .invoke - Section 13 - 56', function() {
+    cy.get('#cat')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .invoke('hide')
+      .should('not.be.visible')
+    cy.get('#title')
+    .invoke('text', 'CAT TAT')
+    cy.get('#subtitle')
+    .invoke('text', 'Teste Subtitle')
+  })
 })
